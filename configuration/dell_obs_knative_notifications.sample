@@ -1,0 +1,20 @@
+{
+  "BASE": {
+    "logging_level": "info",
+    "flask_port":"5002"
+  },
+  "DELL_S3_CONNECTION": {
+    "protocol": "http",
+    "host": "<objectscale_objectstore_s3_endpoint>",
+    "port": "<objectscale_objectstore_s3_endpoint_port>",
+    "s3AccessKey": "<s3_access_key>",
+    "s3SecretKey": "<s3_secret_key>",
+    "connectTimeout": "15",
+    "readTimeout": "60"
+  },
+  "THUMBNAIL_GENERATION": {
+    "S3EventSourceBucket": "<s3_bucket_that_events_were_generated>",
+    "thumbnailS3Bucket": "<s3_bucket_to_store_image_thumbnails>",
+    "thumbnailSize": 128
+  }
+}

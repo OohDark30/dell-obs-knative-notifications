@@ -1,0 +1,75 @@
+# Namespace for Dell OBS Knative Sample application with eventing enabled
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dell-obs-knative-samples
+  labels:
+    eventing.knative.dev/injection: enabled
+---
+# A default broker
+apiVersion: eventing.knative.dev/v1
+kind: Broker
+metadata:
+  name: default
+  namespace: dell-obs-knative-samples
+  annotations:
+    # Note: you can set the eventing.knative.dev/broker.class annotation to change the class of the broker.
+    # The default broker class is MTChannelBasedBroker, but Knative also supports use of the other class.
+    eventing.knative.dev/broker.class: MTChannelBasedBroker
+spec: {}
+---
+# dell_obs_knative sample app deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dell-obs-knative-notifications
+  namespace: dell-obs-knative-samples
+spec:
+  replicas: 1
+  selector:
+    matchLabels: &labels
+      app: dell-obs-knative-notifications
+  template:
+    metadata:
+      labels: *labels
+    spec:
+      containers:
+        - name: dell-obs-knative-notifications
+          image: docker.io/<docker_io_user>/dell-obs-knative-notifications
+          imagePullPolicy: IfNotPresent
+      imagePullSecrets:
+        - name: <docker_secret>
+---
+# Service that exposes dell-obs-knative-sample app.
+# This will be the subscriber for the Trigger
+apiVersion: v1
+kind: Service
+metadata:
+  name: dell-obs-knative-notifications
+  namespace: dell-obs-knative-samples
+spec:
+  selector:
+    app: dell-obs-knative-notifications
+  ports:
+    - protocol: TCP
+      port: 5002
+      targetPort: 5002
+  type: LoadBalancer
+---
+# Knative Eventing Trigger to trigger the helloworld-python service
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: dell-obs-knative-notifications
+  namespace: dell-obs-knative-samples
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: dell.obs.knative.samples.notifications
+      source: dell.obs.knative.samples/notificationssource
+  subscriber:
+    ref:
+      apiVersion: v1
+      kind: Service
+      name: dell-obs-knative-notifications
